@@ -10,19 +10,23 @@ action:
       topic: panasonic_heat_pump/commands/SetZ1HeatRequestTemperature
       retain: false
       payload_template: >
-        {% set outputtemp = states('sensor.aquarea_outlet_temperature') | float
-        %} {% set targettemp =
-        states('sensor.aquarea_outlet_target_temperature') | float %} {% set
-        frequency = states('sensor.aquarea_compressor_frequency') | float %}  
-        {% set setpoint = state_attr('climate.panasonic_wp', 'temperature') |
-        float %} {% set roomTemperature = states('sensor.temperatuur_keuken') |
-        float %} {% set outsideTemp = states('sensor.aquarea_outdoor_ambient') |
-        float %} {% set deltaT = setpoint - roomTemperature %}   {% set
-        WARBasetemp = 28 %}   {% set shift = 0 %} {% set hystOff = 0.5 %}   {%
-        set lowpowerlimittemp = 3 %}   {% set newtarget = targettemp %}  
+        {% set outputtemp = states('sensor.aquarea_outlet_temperature') | float %} 
+        {% set targettemp = states('sensor.aquarea_outlet_target_temperature') | float %} 
+        {% set frequency = states('sensor.aquarea_compressor_frequency') | float %}  
+        {% set setpoint = state_attr('climate.panasonic_wp', 'temperature') | float %} 
+        {% set roomTemperature = states('sensor.temperatuur_keuken') | float %} 
+        {% set outsideTemp = states('sensor.aquarea_outdoor_ambient') | float %} 
+        {% set deltaT = setpoint - roomTemperature %}   
+        {% set WARBasetemp = 28 %} 
+        {% set shift = 0 %} 
+        {% set hystOff = 0.5 %}  
+        {% set lowpowerlimittemp = 3 %}   
+        {% set newtarget = targettemp %}  
 
-        {% set WARsetpoint = WARBasetemp - outsideTemp %} {% if WARsetpoint < 35
-        %} {% set WARsetpoint = 35 %} {% endif %}
+        {% set WARsetpoint = WARBasetemp - outsideTemp %} 
+        {% if WARsetpoint < 35 %} 
+          {% set WARsetpoint = 35 %} 
+        {% endif %}
 
         {% if roomTemperature < (setpoint - 1.5) %} {% set shift=3%} {% elif
         roomTemperature < (setpoint -1 ) %} {% set shift=2%} {% elif
