@@ -17,29 +17,39 @@ action:
         {% set roomTemperature = states('sensor.temperatuur_keuken') | float %} 
         {% set outsideTemp = states('sensor.aquarea_outdoor_ambient') | float %} 
         {% set deltaT = setpoint - roomTemperature %}   
-        {% set WARBasetemp = 28 %} 
+        {% set WARBasetemp = 28 %}   
         {% set shift = 0 %} 
-        {% set hystOff = 0.5 %}  
-        {% set lowpowerlimittemp = 3 %}   
+        {% set hystOff = 0.5 %}   
+        {% set lowpowerlimittemp = -3 %}   
         {% set newtarget = targettemp %}  
 
         {% set WARsetpoint = WARBasetemp - outsideTemp %} 
-        {% if WARsetpoint < 35 %} 
-          {% set WARsetpoint = 35 %} 
+        
+        {% if WARsetpoint < 28 %} 
+          {% set WARsetpoint = 28 %} 
         {% endif %}
 
-        {% if roomTemperature < (setpoint - 1.5) %} {% set shift=3%} {% elif
-        roomTemperature < (setpoint -1 ) %} {% set shift=2%} {% elif
-        roomTemperature < (setpoint - 0.5)%} {% set shift=1%} {% elif
-        roomTemperature < (setpoint + 0.0)%} {% set shift = 0%} {% elif
-        roomTemperature < (setpoint + 0.2)%} {% set shift = -1%} {% elif
-        roomTemperature < (setpoint + 0.4)%} {% set shift = -2%} {% elif
-        roomTemperature < (setpoint + 0.6)%} {% set shift = -3%} {% endif %}
+        {% if roomTemperature < (setpoint - 1.5) %} 
+          {% set shift=3%} 
+        {% elif roomTemperature < (setpoint -1 ) %} 
+          {% set shift=2%} 
+        {% elif roomTemperature < (setpoint - 0.5)%} 
+          {% set shift=1%} 
+        {% elif roomTemperature < (setpoint + 0.0)%} 
+          {% set shift = 0%} 
+        {% elif roomTemperature < (setpoint + 0.2)%} 
+          {% set shift = -1%} 
+        {% elif roomTemperature < (setpoint + 0.4)%} 
+          {% set shift = -2%} 
+        {% elif roomTemperature < (setpoint + 0.6)%} 
+          {% set shift = -3%} 
+        {% endif %}
 
-        {% if outsideTemp > lowpowerlimittemp and roomTemperature > (setpoint
-        -1) %} {% set newtarget = outputtemp - 1%}
-
-        {% else %} {% set newtarget = WARBasetemp + shift%} {% endif %}
+        {% if outsideTemp > lowpowerlimittemp and roomTemperature > (setpoint-1) %} 
+          {% set newtarget = outputtemp - 1%}
+        {% else %} 
+          {% set newtarget = WARBasetemp + shift%}
+        {% endif %}
 
         {% if roomTemperature < (setpoint + hystOff ) %}
           {% set newtarget = newtarget %}
@@ -54,8 +64,13 @@ action:
 
         {% endif %}
 
-        {% if newtarget < 20 %} {% set newtarget = 20 %} {% endif %}
+        {% if newtarget < 20 %} 
+          {% set newtarget = 20 %} 
+        {% endif %}
 
-        {% if newtarget == targettemp %} {{ "%.0f" % (newtarget | int) }} {%
-        else %}   {{ "%.0f" % (newtarget | int) }} {% endif %}
+        {% if newtarget == targettemp %} 
+          {{ "%.0f" % (newtarget | int) }} 
+        {% else %}  
+          {{ "%.0f" % (newtarget | int) }}
+        {% endif %}
 mode: single
