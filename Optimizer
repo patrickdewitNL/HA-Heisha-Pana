@@ -1,0 +1,57 @@
+alias: Panasonic optimizer
+description: Script draait elke minuut en past dynamisch setpoint van WP aan
+trigger:
+  - platform: time_pattern
+    minutes: /1
+condition: []
+action:
+  - service: mqtt.publish
+    data_template:
+      topic: panasonic_heat_pump/commands/SetZ1HeatRequestTemperature
+      retain: false
+      payload_template: >
+        {% set outputtemp = states('sensor.aquarea_outlet_temperature') | float
+        %} {% set targettemp =
+        states('sensor.aquarea_outlet_target_temperature') | float %} {% set
+        frequency = states('sensor.aquarea_compressor_frequency') | float %}  
+        {% set setpoint = state_attr('climate.panasonic_wp', 'temperature') |
+        float %} {% set roomTemperature = states('sensor.temperatuur_keuken') |
+        float %} {% set outsideTemp = states('sensor.aquarea_outdoor_ambient') |
+        float %} {% set deltaT = setpoint - roomTemperature %}   {% set
+        WARBasetemp = 28 %}   {% set shift = 0 %} {% set hystOff = 0.5 %}   {%
+        set lowpowerlimittemp = 3 %}   {% set newtarget = targettemp %}  
+
+        {% set WARsetpoint = WARBasetemp - outsideTemp %} {% if WARsetpoint < 35
+        %} {% set WARsetpoint = 35 %} {% endif %}
+
+        {% if roomTemperature < (setpoint - 1.5) %} {% set shift=3%} {% elif
+        roomTemperature < (setpoint -1 ) %} {% set shift=2%} {% elif
+        roomTemperature < (setpoint - 0.5)%} {% set shift=1%} {% elif
+        roomTemperature < (setpoint + 0.0)%} {% set shift = 0%} {% elif
+        roomTemperature < (setpoint + 0.2)%} {% set shift = -1%} {% elif
+        roomTemperature < (setpoint + 0.4)%} {% set shift = -2%} {% elif
+        roomTemperature < (setpoint + 0.6)%} {% set shift = -3%} {% endif %}
+
+        {% if outsideTemp > lowpowerlimittemp and roomTemperature > (setpoint
+        -1) %} {% set newtarget = outputtemp - 1%}
+
+        {% else %} {% set newtarget = WARBasetemp + shift%} {% endif %}
+
+        {% if roomTemperature < (setpoint + hystOff ) %}
+          {% set newtarget = newtarget %}
+          {% if frequency == 0 and roomTemperature < setpoint %}
+            {% set newtarget = outputtemp + 4 %}
+          {% endif %}
+          {% if frequency > 0 and outputtemp < 24 %}
+            {% set newtarget = outputtemp + 2%}
+          {% endif %}
+        {% else %}
+            {% set newtarget = outputtemp -3 %}
+
+        {% endif %}
+
+        {% if newtarget < 20 %} {% set newtarget = 20 %} {% endif %}
+
+        {% if newtarget == targettemp %} {{ "%.0f" % (newtarget | int) }} {%
+        else %}   {{ "%.0f" % (newtarget | int) }} {% endif %}
+mode: single
